@@ -10,10 +10,11 @@ public class RamblersState extends SearchState{
      * @param coords the start point
      * @param localCost
      */
-    public RamblersState(TerrainMap terrainMap, Coords coords, int localCost) {
+    public RamblersState(TerrainMap terrainMap, Coords coords, int localCost, int estRemCost) {
         this.terrainMap = terrainMap;
         this.coords = coords;
         this.localCost = localCost;
+        this.estRemCost = estRemCost;
     }
 
     @Override
@@ -22,7 +23,7 @@ public class RamblersState extends SearchState{
         if (ramblersState.getCoords().getx() == ((RamblersSearch)searcher).getEndCoords().getx()
                 && ramblersState.getCoords().gety() == ((RamblersSearch)searcher).getEndCoords().gety()) {
             for (SearchNode node: searcher.open) {
-                if (node.getGlobalCost() < searcher.currentNode.getGlobalCost()) {
+                if (node.getestTotalCost() < searcher.currentNode.getestTotalCost()) {
                     return false;
                 }
                 return true;
@@ -37,22 +38,22 @@ public class RamblersState extends SearchState{
         ArrayList<SearchState> successors = new ArrayList<>();
         // up
         if (coords.getx() > 0) {
-            successors.add(new RamblersState(terrainMap, new Coords(coords.gety(), coords.getx() - 1), calculateLocalCost(coords.getx() - 1, coords.gety())));
+            successors.add(new RamblersState(terrainMap, new Coords(coords.gety(), coords.getx() - 1), calculateLocalCost(coords.getx() - 1, coords.gety()), calculateEstRemCost(coords.getx() - 1, coords.gety(), searcher)));
         }
 
         // down
         if (coords.getx() < terrainMap.getWidth() - 1) {
-            successors.add(new RamblersState(terrainMap, new Coords(coords.gety(), coords.getx() + 1), calculateLocalCost(coords.getx() + 1, coords.gety())));
+            successors.add(new RamblersState(terrainMap, new Coords(coords.gety(), coords.getx() + 1), calculateLocalCost(coords.getx() + 1, coords.gety()), calculateEstRemCost(coords.getx() + 1, coords.gety(), searcher)));
         }
 
         // left
         if (coords.gety() > 0) {
-            successors.add(new RamblersState(terrainMap, new Coords(coords.gety() - 1, coords.getx()), calculateLocalCost(coords.getx(), coords.gety() - 1)));
+            successors.add(new RamblersState(terrainMap, new Coords(coords.gety() - 1, coords.getx()), calculateLocalCost(coords.getx(), coords.gety() - 1), calculateEstRemCost(coords.getx(), coords.gety() - 1, searcher)));
         }
 
         // right
         if (coords.gety() < terrainMap.getDepth() - 1) {
-            successors.add(new RamblersState(terrainMap, new Coords(coords.gety() + 1, coords.getx()), calculateLocalCost(coords.getx(), coords.gety() + 1)));
+            successors.add(new RamblersState(terrainMap, new Coords(coords.gety() + 1, coords.getx()), calculateLocalCost(coords.getx(), coords.gety() + 1), calculateEstRemCost(coords.getx(), coords.gety() + 1, searcher)));
         }
         return successors;
     }
@@ -84,6 +85,27 @@ public class RamblersState extends SearchState{
         else {
             return 1 + tmap[x][y] - tmap[coords.getx()][coords.gety()];
         }
+    }
+
+    /**
+     * This method will calculate the estRemCost according to the strategy
+     * @param x
+     * @param y
+     * @param searcher
+     * @return
+     */
+    private int calculateEstRemCost(int x, int y, Search searcher) {
+        Coords endCoords = ((RamblersSearch) searcher).getEndCoords();
+        if (((RamblersSearch) searcher).getDistanceStrategy() == Distance.MANHATTAN) {
+            return Math.abs(endCoords.getx() - x) + Math.abs(endCoords.gety() - y);
+        }
+        else if (((RamblersSearch) searcher).getDistanceStrategy() == Distance.EUCLIDEAN) {
+            return (int) Math.sqrt(Math.pow(endCoords.getx() - x, 2) + Math.pow(endCoords.gety() - y, 2));
+        }
+        else if (((RamblersSearch) searcher).getDistanceStrategy() == Distance.HEIGHT_DIFFERENCE) {
+            return terrainMap.getTmap()[endCoords.getx()][endCoords.gety()] - terrainMap.getTmap()[x][y];
+        }
+        return 0;
     }
 
     /**

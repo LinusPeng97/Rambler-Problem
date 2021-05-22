@@ -189,6 +189,7 @@ public abstract class Search {
       System.out.println(node.toString());
       node = node.getParent();
     }
+
     return buf.toString();
     }
 }
