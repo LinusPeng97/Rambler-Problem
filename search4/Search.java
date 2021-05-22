@@ -260,11 +260,11 @@ public abstract class Search {
     	System.out.println("Efficiency "+ ((float) plen/(closed.size()+1)));
 	    System.out.println("Solution Path\n");
 
-        SearchNode node = currentNode;
-        while (node != null) {
-          System.out.println(node.toString());
-          node = node.getParent();
-        }
+//        SearchNode node = currentNode;
+//        while (node != null) {
+//          System.out.println(node.toString());
+//          node = node.getParent();
+//        }
 
 	    return buf.toString();
     }
